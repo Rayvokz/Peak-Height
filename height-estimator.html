@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grown — Adult Height Estimator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --ink:#1B1D29; --muted:#6B7280; --line:#E7E9F0; --card:#FFFFFF;
+  --blue:#0C8CE0; --blue-soft:#EAF7FF; --blue-light:#BEE8FB; --yellow:#F0A93B; --yellow-soft:#FFF4DF; --pink:#EE6E9C; --pink-soft:#FDEAF2;
+  --danger:#D1543C; --shadow:0 1px 2px rgba(27,29,41,.04),0 10px 28px rgba(27,29,41,.06);
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#15161E; --ink:#EEEFF5; --muted:#9497A6; --line:#2A2C38; --card:#1C1E29;
+    --blue:#4FC3F7; --blue-soft:#0F2733; --blue-light:#154059; --yellow:#F3BE66; --yellow-soft:#332811; --pink:#F493B8; --pink-soft:#3A2230;
+    --danger:#E3806B; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15161E; --ink:#EEEFF5; --muted:#9497A6; --line:#2A2C38; --card:#1C1E29;
+  --blue:#4FC3F7; --blue-soft:#0F2733; --blue-light:#154059; --yellow:#F3BE66; --yellow-soft:#332811; --pink:#F493B8; --pink-soft:#3A2230;
+  --danger:#E3806B; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.35);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding:64px 24px 100px}
+h1,h2{font-family:'Fraunces',serif}
+
+.hero{text-align:center;margin-bottom:52px}
+.hero-art{width:220px;height:150px;margin:0 auto 28px}
+.eyebrow{color:var(--blue);font-size:13.5px;font-weight:600;letter-spacing:.02em;margin:0 0 12px}
+h1{font-weight:500;font-size:clamp(34px,6vw,50px);line-height:1.06;margin:0 0 16px;letter-spacing:-0.015em}
+h1 .hl{color:var(--pink)}
+.sub{color:var(--muted);font-size:16.5px;max-width:46ch;margin:0 auto}
+
+form{display:flex;flex-direction:column;gap:20px}
+.section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:30px;box-shadow:var(--shadow)}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
+.step-no{font-family:'Fraunces',serif;font-size:15px;color:var(--blue);flex-shrink:0}
+.section-head h2{font-size:19px;font-weight:500;margin:0;letter-spacing:-0.01em}
+.section-desc{color:var(--muted);font-size:14px;margin:0 0 24px;padding-left:26px}
+
+.field{margin-bottom:22px}
+.field:last-child{margin-bottom:0}
+.field-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap}
+.field label{font-size:14px;color:var(--ink);font-weight:500}
+.field label .opt{color:var(--muted);font-weight:400}
+input[type=number],input[type=text],textarea,select{
+  width:100%;border:1px solid var(--line);background:transparent;color:var(--ink);
+  padding:12px 13px;border-radius:9px;font:inherit;font-size:16px;transition:border-color .15s;
+}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+textarea{resize:vertical;min-height:92px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+.unitswitch{display:flex;background:var(--blue-soft);border-radius:20px;padding:3px;flex-shrink:0}
+.uopt{border:none;background:transparent;font:inherit;font-size:12.5px;color:var(--muted);padding:8px 12px;min-height:34px;border-radius:16px;cursor:pointer;font-weight:500}
+.uopt.active{background:var(--card);color:var(--blue);box-shadow:0 1px 2px rgba(0,0,0,.08);font-weight:600}
+.u-ftin{display:flex;gap:10px}
+
+.pillgroup{display:flex;gap:10px}
+.pill{flex:1;position:relative}
+.pill input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.pill span{display:block;text-align:center;padding:12px;border:1px solid var(--line);border-radius:9px;font-size:15px;cursor:pointer;transition:.15s}
+.pill input:checked + span{border-color:var(--blue);background:var(--blue-soft);color:var(--blue);font-weight:600}
+.pill input:focus-visible + span{outline:2px solid var(--blue);outline-offset:2px}
+.uopt:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.dropzone{border:1.5px dashed var(--line);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:.15s;position:relative}
+.dropzone:hover{border-color:var(--pink)}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.dropzone .dz-text{font-size:14px;color:var(--muted);margin-top:8px}
+.dropzone .dz-text b{color:var(--ink)}
+.dz-preview{display:none;align-items:center;gap:12px;margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:9px}
+.dz-preview img{width:46px;height:46px;object-fit:cover;border-radius:6px}
+.dz-preview .name{font-size:13.5px}
+.dz-remove{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;text-decoration:underline}
+
+.opt-heading{text-align:center;margin:44px 0 6px}
+.opt-heading h2{font-size:15px;letter-spacing:.12em;color:var(--pink);font-weight:600;margin:0}
+.opt-sub{text-align:center;color:var(--muted);font-size:14px;margin:0 0 20px}
+
+button.go{
+  width:100%;padding:17px;border:none;border-radius:12px;background:var(--blue-light);color:#063652;
+  font:inherit;font-size:16.5px;font-weight:600;cursor:pointer;transition:transform .15s,opacity .2s,background .15s;
+}
+button.go:hover{background:var(--blue)}
+:root[data-theme="dark"] button.go{color:#EAF7FF}
+@media (prefers-color-scheme:dark){ button.go{color:#EAF7FF} }
+button.go:active{transform:scale(0.99)}
+
+#result{display:none;margin-top:28px}
+#result.show{display:block;animation:reveal .55s cubic-bezier(.2,.7,.3,1)}
+@keyframes reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.result-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:34px;box-shadow:var(--shadow)}
+.result-eyebrow{color:var(--pink);font-size:13px;font-weight:600;margin:0 0 8px}
+.big{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+.big .num{font-family:'Fraunces',serif;font-size:clamp(46px,8vw,66px);color:var(--blue);line-height:1;font-weight:500}
+.big .unit{font-size:19px;color:var(--muted)}
+.range{color:var(--muted);font-size:14px;margin:0 0 28px}
+svg.ruler{width:100%;height:auto;display:block;margin-bottom:28px}
+.breakdown{border-top:1px solid var(--line);padding-top:22px;display:grid;gap:13px}
+.b-row{display:flex;justify-content:space-between;font-size:14.5px;gap:16px}
+.b-row .k{color:var(--muted)}
+.b-row .v{font-weight:600;white-space:nowrap;color:var(--blue)}
+.note{margin-top:26px;padding:16px 18px;background:var(--pink-soft);border-radius:10px;font-size:13.5px;color:var(--ink);line-height:1.55}
+.disclaimer{margin-top:14px;padding:14px 18px;background:var(--yellow-soft);border:1px solid var(--yellow);border-radius:10px;font-size:12.5px;color:var(--ink);line-height:1.55}
+.form-error{background:#FBEAE7;border:1px solid var(--danger);color:var(--danger);padding:13px 16px;border-radius:10px;font-size:14px;margin:0}
+:root[data-theme="dark"] .form-error{background:#3A211C}
+@media (prefers-color-scheme:dark){ .form-error{background:#3A211C} }
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+@media (max-width:640px){
+  .wrap{padding:44px 16px 80px}
+  .row{grid-template-columns:1fr}
+  .section{padding:22px}
+  .section-desc{padding-left:0}
+  .result-card{padding:24px}
+  .hero-art{width:170px;height:120px}
+}
+@media (max-width:400px){
+  .u-ftin{flex-direction:column}
+  .unitswitch{margin-top:2px}
+  .section{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <p class="eyebrow">Adult height estimator</p>
+    <svg class="hero-art" viewBox="0 0 220 150" fill="none">
+      <line x1="20" y1="130" x2="200" y2="130" stroke="var(--line)" stroke-width="1"/>
+      <g stroke="var(--yellow)" stroke-width="1.2" stroke-dasharray="3 4">
+        <line x1="66" y1="95" x2="66" y2="130"/>
+        <line x1="118" y1="66" x2="118" y2="130"/>
+        <line x1="172" y1="34" x2="172" y2="130"/>
+      </g>
+      <path d="M62 130c0-16 8-24 8-24s8 8 8 24" fill="var(--pink-soft)" stroke="var(--pink)" stroke-width="1.2"/>
+      <circle cx="70" cy="98" r="8" fill="var(--pink-soft)" stroke="var(--pink)" stroke-width="1.2"/>
+      <path d="M112 130c0-22 10-32 10-32s10 10 10 32" fill="var(--blue-soft)" stroke="var(--blue)" stroke-width="1.2" opacity=".85"/>
+      <circle cx="122" cy="69" r="9" fill="var(--blue-soft)" stroke="var(--blue)" stroke-width="1.2" opacity=".85"/>
+      <path d="M164 130c0-28 12-40 12-40s12 12 12 40" fill="var(--blue)"/>
+      <circle cx="176" cy="37" r="10" fill="var(--blue)"/>
+      <path d="M40 108 Q110 72 190 20" stroke="var(--yellow)" stroke-width="1.5" fill="none" stroke-dasharray="2 5"/>
+      <path d="M182 24l8-4 -2 9z" fill="var(--yellow)"/>
+    </svg>
+    <h1>How tall will you <span class="hl">grow</span>?</h1>
+    <p class="sub">Nothing you enter is stored or shared.</p>
+  </div>
+
+  <form id="heightForm">
+
+    <div class="section">
+      <div class="section-head"><span class="step-no">01</span><h2>About you</h2></div>
+
+      <div class="field">
+        <label>Biological sex</label>
+        <div class="pillgroup" style="margin-top:8px">
+          <label class="pill"><input type="radio" name="sex" value="male"><span>Male</span></label>
+          <label class="pill"><input type="radio" name="sex" value="female"><span>Female</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="age">Age (years)</label>
+        <input type="number" id="age" min="2" max="30" step="0.1" placeholder="e.g. 14.5" required style="margin-top:8px">
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label for="curHeight">Current height</label>
+          <div class="unitswitch" data-target="curHeight">
+            <button type="button" class="uopt active" data-unit="cm">cm</button>
+            <button type="button" class="uopt" data-unit="ftin">ft / in</button>
+          </div>
+        </div>
+        <div data-unit-input="curHeight">
+          <div data-unit-group="cm"><input type="number" class="u-cm" step="0.1" placeholder="e.g. 160"></div>
+          <div data-unit-group="ftin" class="u-ftin" style="display:none">
+            <input type="number" class="u-ft" placeholder="ft"><input type="number" class="u-in" placeholder="in">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <div class="field-head">
+            <label>Weight <span class="opt">(required)</span></label>
+            <div class="unitswitch" data-target="weight">
+              <button type="button" class="uopt active" data-unit="kg">kg</button>
+              <button type="button" class="uopt" data-unit="lb">lb</button>
+            </div>
+          </div>
+          <div data-unit-input="weight">
+            <div data-unit-group="kg"><input type="number" class="u-cm" step="0.1" placeholder="e.g. 52"></div>
+            <div data-unit-group="lb" style="display:none"><input type="number" class="u-in2" step="0.1" placeholder="e.g. 115"></div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-head">
+            <label>Foot length <span class="opt">(optional)</span></label>
+            <div class="unitswitch" data-target="footLength">
+              <button type="button" class="uopt active" data-unit="cm">cm</button>
+              <button type="button" class="uopt" data-unit="in">in</button>
+            </div>
+          </div>
+          <div data-unit-input="footLength">
+            <div data-unit-group="cm"><input type="number" class="u-cm" step="0.1" placeholder="e.g. 24.5"></div>
+            <div data-unit-group="in" style="display:none"><input type="number" class="u-in2" step="0.1" placeholder="e.g. 9.6"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="step-no">02</span><h2>Family heights</h2></div>
+
+      <div class="row">
+        <div class="field">
+          <div class="field-head">
+            <label for="dadHeight">Father's height</label>
+            <div class="unitswitch" data-target="dadHeight">
+              <button type="button" class="uopt active" data-unit="cm">cm</button>
+              <button type="button" class="uopt" data-unit="ftin">ft/in</button>
+            </div>
+          </div>
+          <div data-unit-input="dadHeight">
+            <div data-unit-group="cm"><input type="number" class="u-cm" step="0.1" placeholder="e.g. 175"></div>
+            <div data-unit-group="ftin" class="u-ftin" style="display:none">
+              <input type="number" class="u-ft" placeholder="ft"><input type="number" class="u-in" placeholder="in">
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-head">
+            <label for="momHeight">Mother's height</label>
+            <div class="unitswitch" data-target="momHeight">
+              <button type="button" class="uopt active" data-unit="cm">cm</button>
+              <button type="button" class="uopt" data-unit="ftin">ft/in</button>
+            </div>
+          </div>
+          <div data-unit-input="momHeight">
+            <div data-unit-group="cm"><input type="number" class="u-cm" step="0.1" placeholder="e.g. 162"></div>
+            <div data-unit-group="ftin" class="u-ftin" style="display:none">
+              <input type="number" class="u-ft" placeholder="ft"><input type="number" class="u-in" placeholder="in">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Do you have a tall grandparent too?</label>
+        <div class="pillgroup" style="margin-top:8px">
+          <label class="pill"><input type="radio" name="grandTall" value="yes"><span>Yes</span></label>
+          <label class="pill"><input type="radio" name="grandTall" value="no" checked><span>No</span></label>
+        </div>
+        <div id="grandHeightWrap" style="display:none;margin-top:14px">
+          <div class="field-head">
+            <label for="grandHeight">Their height <span class="opt">(optional)</span></label>
+            <div class="unitswitch" data-target="grandHeight">
+              <button type="button" class="uopt active" data-unit="cm">cm</button>
+              <button type="button" class="uopt" data-unit="ftin">ft/in</button>
+            </div>
+          </div>
+          <div data-unit-input="grandHeight">
+            <div data-unit-group="cm"><input type="number" class="u-cm" step="0.1" placeholder="e.g. 188"></div>
+            <div data-unit-group="ftin" class="u-ftin" style="display:none">
+              <input type="number" class="u-ft" placeholder="ft"><input type="number" class="u-in" placeholder="in">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opt-heading"><h2>OPTIONAL INFORMATION</h2></div>
+    <p class="opt-sub">These optional questions help us predict your future height more accurately.</p>
+
+    <div class="section">
+      <div class="section-head"><span class="step-no">03</span><h2>Changes in your body</h2></div>
+      <p class="section-desc" id="q1Desc">Have you noticed any of these — hair on your face or body, or your voice changing?</p>
+      <div class="field">
+        <label for="q1" class="sr-only">Changes in your body</label>
+        <textarea id="q1" placeholder="Example: I have a little mustache but no beard yet. My voice got a bit deeper last year."></textarea>
+        <p class="hint" id="girlHint" style="display:none">If you're a girl: it really helps to mention the age your periods started, if they have.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="step-no">04</span><h2>How you're growing</h2></div>
+      <p class="section-desc">Do your legs hurt sometimes when you grow? Do your arms or legs look longer than other people your age? Have you had a growth spurt lately?</p>
+      <div class="field">
+        <label for="q2" class="sr-only">How you're growing</label>
+        <textarea id="q2" placeholder="Example: My legs hurt a little at night sometimes. My arms feel a bit longer than my friends'. I grew out of my shoes twice this year."></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="step-no">05</span><h2>Your daily life</h2></div>
+      <p class="section-desc">What do you eat, how much do you move around, how well do you sleep? Anything about your family's height is useful too.</p>
+      <div class="field">
+        <label for="q3" class="sr-only">Your daily life</label>
+        <textarea id="q3" placeholder="Example: I eat pretty well and play basketball twice a week. I don't always sleep enough. My older brother is quite tall."></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="step-no">06</span><h2>Medical reports</h2></div>
+      <div class="field">
+        <label for="boneAge">Bone age from a doctor's report <span class="opt">(optional)</span></label>
+        <input type="number" id="boneAge" min="1" max="20" step="0.1" placeholder="e.g. 13.2 (in years)" style="margin-top:8px">
+      </div>
+      <div class="field">
+        <label>Left wrist X-ray <span class="opt">(optional)</span></label>
+        <div class="dropzone" style="margin-top:8px" id="dropzone">
+          <input type="file" id="xrayFile" accept="image/*,.pdf">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.4"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+          <p class="dz-text"><b>Attach an X-ray</b> or drop it here</p>
+        </div>
+        <div class="dz-preview" id="dzPreview"><img id="dzImg" alt=""><span class="name" id="dzName"></span><button type="button" class="dz-remove" id="dzRemove">remove</button></div>
+      </div>
+    </div>
+
+    <p class="form-error" id="formError" style="display:none"></p>
+    <button type="submit" class="go">Calculate my estimate</button>
+  </form>
+
+  <section id="result">
+    <div class="result-card">
+      <p class="result-eyebrow">Estimated adult height</p>
+      <div class="big"><span class="num" id="finalNum">—</span><span class="unit" id="finalUnit"></span></div>
+      <p class="range" id="rangeText"></p>
+      <svg class="ruler" id="rulerSvg" viewBox="0 0 640 90"></svg>
+      <div class="breakdown" id="breakdown"></div>
+      <p class="note" id="noteText"></p>
+      <p class="disclaimer">⚠️ <b>Disclaimer:</b> This is a statistical estimate for informational purposes only — it is <b>not</b> a medical diagnosis or professional advice. Actual adult height depends on genetics, nutrition, health conditions, and other factors this tool cannot fully account for. For an accurate, personalized assessment, please consult a pediatrician or growth specialist, especially if bone-age imaging is available.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const units = {curHeight:'cm', dadHeight:'cm', momHeight:'cm', grandHeight:'cm', weight:'kg', footLength:'cm'};
+
+const resultSection = document.getElementById('result');
+function resetResult(){
+  if(resultSection.classList.contains('show')){
+    resultSection.classList.remove('show');
+  }
+}
+// Any typed or selected change to the form invalidates the current result
+document.getElementById('heightForm').addEventListener('input', resetResult);
+document.getElementById('heightForm').addEventListener('change', resetResult);
+
+document.querySelectorAll('input[name=grandTall]').forEach(r=>{
+  r.addEventListener('change', ()=>{
+    document.getElementById('grandHeightWrap').style.display = (r.value==='yes' && r.checked) ? 'block' : 'none';
+  });
+});
+document.querySelectorAll('input[name=sex]').forEach(r=>{
+  r.addEventListener('change', ()=>{
+    if(!r.checked) return;
+    const isFemale = r.value==='female';
+    document.getElementById('girlHint').style.display = isFemale ? 'block' : 'none';
+    document.getElementById('q1Desc').textContent = isFemale
+      ? "Have you noticed any of these — hair on your face or body, your voice changing, or periods starting?"
+      : "Have you noticed any of these — hair on your face or body, or your voice changing?";
+    document.getElementById('q1').placeholder = isFemale
+      ? "Example: My voice hasn't changed much. My periods started when I was 12."
+      : "Example: I have a little mustache but no beard yet. My voice got a bit deeper last year.";
+  });
+});
+
+document.querySelectorAll('.unitswitch').forEach(sw=>{
+  const target = sw.dataset.target;
+  const wrap = document.querySelector(`[data-unit-input="${target}"]`);
+  sw.querySelectorAll('.uopt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      sw.querySelectorAll('.uopt').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      units[target] = btn.dataset.unit;
+      wrap.querySelectorAll('[data-unit-group]').forEach(g=>{
+        g.style.display = g.dataset.unitGroup===btn.dataset.unit ? '' : 'none';
+      });
+      resetResult();
+    });
+  });
+});
+
+function getCM(target){
+  const wrap = document.querySelector(`[data-unit-input="${target}"]`);
+  const unit = units[target];
+  if(unit==='cm'){ const v=wrap.querySelector('.u-cm').value; return v?parseFloat(v):null; }
+  const ft=parseFloat(wrap.querySelector('.u-ft').value)||0, inch=parseFloat(wrap.querySelector('.u-in').value)||0;
+  return (ft||inch)?ftInToCM(ft,inch):null;
+}
+function getFootCM(){
+  const wrap = document.querySelector('[data-unit-input="footLength"]');
+  if(units.footLength==='cm'){ const v=wrap.querySelector('.u-cm').value; return v?parseFloat(v):null; }
+  const v=wrap.querySelector('.u-in2').value; return v?parseFloat(v)*2.54:null;
+}
+function getWeightKG(){
+  const wrap = document.querySelector('[data-unit-input="weight"]');
+  if(units.weight==='kg'){ const v=wrap.querySelector('.u-cm').value; return v?parseFloat(v):null; }
+  const v=wrap.querySelector('.u-in2').value; return v?parseFloat(v)*0.453592:null;
+}
+
+const dz = document.getElementById('dropzone'), dzFile = document.getElementById('xrayFile');
+const dzPrev = document.getElementById('dzPreview'), dzImg = document.getElementById('dzImg'), dzName = document.getElementById('dzName');
+dzFile.addEventListener('change', ()=>{
+  const f = dzFile.files[0]; if(!f) return;
+  dzName.textContent = f.name;
+  if(f.type.startsWith('image/')){ dzImg.src = URL.createObjectURL(f); dzImg.style.display='block'; } else { dzImg.style.display='none'; }
+  dzPrev.style.display='flex'; dz.style.display='none';
+});
+document.getElementById('dzRemove').addEventListener('click', ()=>{
+  dzFile.value=''; dzPrev.style.display='none'; dz.style.display='block';
+  resetResult();
+});
+
+const boyPct = {1:42.2,2:49.5,3:53.8,4:58.0,5:61.8,6:65.2,7:69.0,8:72.0,9:75.0,10:78.0,11:81.0,12:84.2,13:88.4,14:91.5,15:96.1,16:98.3,17:99.3,18:100};
+const girlPct= {1:44.7,2:52.8,3:57.0,4:61.8,5:66.2,6:70.0,7:73.3,8:76.4,9:79.0,10:81.7,11:85.0,12:88.8,13:92.8,14:95.8,15:97.9,16:98.9,17:99.5,18:100};
+
+function pctForAge(age, sex){
+  const table = sex==='male'?boyPct:girlPct;
+  const a = Math.max(1, Math.min(18, age));
+  const lo = Math.floor(a), hi = Math.ceil(a);
+  if(lo===hi) return table[lo];
+  return table[lo] + (table[hi]-table[lo])*(a-lo);
+}
+function cmToFtIn(cm){
+  const totalIn = Math.round(cm / 2.54);
+  const ft = Math.floor(totalIn / 12);
+  const inch = totalIn - ft * 12;
+  return `${ft}'${inch}"`;
+}
+function ftInToCM(ft, inch){ return ((ft||0)*12 + (inch||0)) * 2.54; }
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+
+document.getElementById('heightForm').addEventListener('submit', function(e){
+  e.preventDefault();
+
+  const sexChecked = document.querySelector('input[name=sex]:checked');
+  const sex = sexChecked ? sexChecked.value : null;
+  const age = parseFloat(document.getElementById('age').value);
+  const cur = getCM('curHeight');
+  const dad = getCM('dadHeight');
+  const mom = getCM('momHeight');
+  const grandTall = document.querySelector('input[name=grandTall]:checked').value === 'yes';
+  const grandHeight = grandTall ? getCM('grandHeight') : null;
+  let boneAge = parseFloat(document.getElementById('boneAge').value) || null;
+  const weight = getWeightKG();
+  const foot = getFootCM();
+  const text = [document.getElementById('q1').value, document.getElementById('q2').value, document.getElementById('q3').value].join(' ').toLowerCase();
+
+  const errorBox = document.getElementById('formError');
+  errorBox.style.display = 'none';
+
+  // --- required fields: sex, age, current height, weight, dad height, mom height ---
+  const missing = [];
+  if(!sex) missing.push('biological sex');
+  if(!age || isNaN(age)) missing.push('age');
+  if(!cur || isNaN(cur)) missing.push('current height');
+  if(!dad || isNaN(dad)) missing.push("father's height");
+  if(!mom || isNaN(mom)) missing.push("mother's height");
+  if(!weight || isNaN(weight)) missing.push('weight');
+
+  if(missing.length){
+    errorBox.textContent = 'Please provide us the required information: ' + missing.join(', ') + '.';
+    errorBox.style.display = 'block';
+    document.getElementById('result').classList.remove('show');
+    return;
+  }
+
+  const errors = [];
+  if(age < 2 || age > 30) errors.push('Enter a valid age between 2 and 30.');
+  if(cur < 50 || cur > 250) errors.push('Enter a valid current height.');
+  if(dad < 100 || dad > 230) errors.push("Enter a valid father's height.");
+  if(mom < 100 || mom > 230) errors.push("Enter a valid mother's height.");
+  if(weight <= 0 || weight > 300) errors.push('Enter a valid weight.');
+
+  if(errors.length){
+    errorBox.textContent = errors[0];
+    errorBox.style.display = 'block';
+    document.getElementById('result').classList.remove('show');
+    return;
+  }
+
+  if(boneAge!==null && (isNaN(boneAge) || boneAge<1 || boneAge>20)) boneAge = null;
+  let weightClean = weight;
+  if(weightClean!==null && (isNaN(weightClean) || weightClean<=0 || weightClean>300)) weightClean = null;
+  let footClean = foot;
+  if(footClean!==null && (isNaN(footClean) || footClean<=0 || footClean>40)) footClean = null;
+
+  const mph = sex==='male' ? (dad+mom+13)/2 : (dad+mom-13)/2;
+
+  // --- parse free-text signals ---
+  let pAdj = 0;
+  if(sex==='male' && /mustache|beard|facial hair|shaving|deep voice|voice (crack|chang|deepen)/i.test(text)) pAdj += 10;
+  if(sex==='female' && /period|menstruat/i.test(text)) pAdj += 8;
+  if(/no (facial |body )?hair|not started|haven'?t started|prepubescent|still (look|looks) like a kid|no signs/i.test(text)) pAdj -= 14;
+  if(/stopped growing|haven'?t grown|same height for|fully grown|not grown (in|for)/i.test(text)) pAdj += 15;
+  if(/growth spurt|growing (fast|quickly)|shot up|shoe size|outgrow|clothes (don'?t|do not) fit/i.test(text)) pAdj -= 4;
+  if(/growing pain|legs? ach|joint pain|bone pain|knees? hurt|legs? hurt/i.test(text)) pAdj -= 3;
+
+  let limbAdj = 0;
+  if(/long legs|long arms|long limbs|longer legs|longer arms|lanky/i.test(text)) limbAdj += 1.2;
+  if(/short legs|short arms|short torso|stocky/i.test(text)) limbAdj -= 0.8;
+
+  let descAdj = 0;
+  ['sport','exercise','gym','healthy diet','balanced diet','active','protein'].forEach(k=>{ if(text.includes(k)) descAdj += 0.15; });
+  ['smoke','alcohol','junk food','malnourish','stunt','skip meals','underweight','sedentary','poor sleep'].forEach(k=>{ if(text.includes(k)) descAdj -= 0.2; });
+  descAdj = clamp(descAdj, -1.2, 1.2);
+
+  if(!boneAge){ const m = text.match(/bone age[^\d]{0,15}(\d{1,2}(\.\d)?)/i); if(m) boneAge = parseFloat(m[1]); }
+  let menarcheAge = null;
+  { const m = text.match(/(period|menstruat)[^\d]{0,20}(\d{1,2}(\.\d)?)/i); if(m) menarcheAge = parseFloat(m[2]); }
+
+  let sigs = [{pct: pctForAge(age, sex), w:1}];
+  if(boneAge) sigs.push({pct: pctForAge(boneAge, sex), w:2.2});
+  const totalW = sigs.reduce((s,x)=>s+x.w,0);
+  let pct = sigs.reduce((s,x)=>s+x.pct*x.w,0)/totalW;
+  pct = clamp(pct + pAdj*0.5, 25, 100);
+
+  const heightProj = cur/(pct/100);
+  const footEst = footClean ? footClean/0.152 : null;
+
+  const w = clamp(0.4 + 0.4*(pct/100), 0.4, 0.85);
+  let base = w*heightProj + (1-w)*mph;
+  if(footEst) base = base*0.9 + footEst*0.1;
+
+  if(sex==='female' && menarcheAge && age>menarcheAge){
+    const remaining = clamp(7-(age-menarcheAge), 2, 7);
+    base = base*0.75 + (cur+remaining)*0.25;
+  }
+
+  let bmiNote = '';
+  if(weightClean && cur){
+    const bmi = weightClean/((cur/100)*(cur/100));
+    if(bmi < 15.5){ descAdj -= 0.3; bmiNote = 'Weight looks low for height — consistent nutrition supports reaching full growth potential.'; }
+    else if(bmi > 28){ bmiNote = 'Weight is on the higher side for height — rarely changes the ceiling, but balanced nutrition helps growth run smoothly.'; }
+  }
+
+  let grandAdj = 0;
+  if(grandTall){
+    const tallestParent = Math.max(dad, mom);
+    grandAdj = grandHeight ? clamp((grandHeight - tallestParent) * 0.08, 0, 2.5) : 0.8;
+  }
+
+  const final = base + descAdj + limbAdj + grandAdj;
+  let uncertainty = clamp(8.5*(1-0.7*(pct/100)), 2, 8.5);
+  if(boneAge) uncertainty *= 0.6;
+  else if(pAdj!==0) uncertainty *= 0.85;
+  const lo = final-uncertainty, hi = final+uncertainty;
+
+  document.getElementById('finalNum').textContent = cmToFtIn(final);
+  document.getElementById('finalUnit').textContent = final.toFixed(0)+' cm';
+  document.getElementById('rangeText').textContent = `Likely range: ${cmToFtIn(lo)}–${cmToFtIn(hi)} (${lo.toFixed(0)}–${hi.toFixed(0)} cm) — confidence narrows closer to adulthood`;
+
+  const svgMin = Math.min(cur,lo)-8, svgMax = Math.max(hi,cur)+8;
+  const scale = x => 20 + (x-svgMin)/(svgMax-svgMin)*600;
+  const cs = getComputedStyle(document.documentElement);
+  const inkC=cs.getPropertyValue('--ink').trim(), blueC=cs.getPropertyValue('--blue').trim(), mutC=cs.getPropertyValue('--muted').trim(), yelC=cs.getPropertyValue('--yellow').trim();
+  document.getElementById('rulerSvg').innerHTML = `
+    <line x1="20" y1="55" x2="620" y2="55" stroke="${mutC}" stroke-width="1"/>
+    <rect x="${scale(lo)}" y="48" width="${scale(hi)-scale(lo)}" height="14" fill="${yelC}" opacity="0.25" rx="3"/>
+    <line x1="${scale(final)}" y1="28" x2="${scale(final)}" y2="72" stroke="${blueC}" stroke-width="2"/>
+    <circle cx="${scale(cur)}" cy="55" r="4" fill="${inkC}"/>
+    <text x="${scale(cur)}" y="82" font-size="11" fill="${mutC}" text-anchor="middle" font-family="Inter">now: ${cmToFtIn(cur)}</text>
+    <text x="${scale(final)}" y="20" font-size="11" fill="${blueC}" text-anchor="middle" font-family="Inter" font-weight="600">${cmToFtIn(final)}</text>
+  `;
+
+  const usedSignals = ['mid-parental height', `growth-curve position (${pct.toFixed(0)}% grown)`];
+  if(boneAge) usedSignals.push('bone-age reading');
+  if(pAdj!==0) usedSignals.push('puberty signs from your notes');
+  if(footEst) usedSignals.push('foot-length cross-check');
+  if(menarcheAge) usedSignals.push('menarche timing');
+  if(limbAdj!==0) usedSignals.push('body-proportion notes');
+
+  document.getElementById('breakdown').innerHTML = `
+    <div class="b-row"><span class="k">Genetic potential (mid-parental)</span><span class="v">${mph.toFixed(1)} cm</span></div>
+    <div class="b-row"><span class="k">Growth-curve projection</span><span class="v">${heightProj.toFixed(1)} cm</span></div>
+    ${footEst?`<div class="b-row"><span class="k">Foot-length cross-check</span><span class="v">${footEst.toFixed(1)} cm</span></div>`:''}
+    <div class="b-row"><span class="k">Notes-based adjustment</span><span class="v">${(descAdj+limbAdj)>=0?'+':''}${(descAdj+limbAdj).toFixed(1)} cm</span></div>
+    ${grandTall?`<div class="b-row"><span class="k">Tall grandparent</span><span class="v">+${grandAdj.toFixed(1)} cm</span></div>`:''}
+    ${bmiNote?`<div class="b-row"><span class="k" style="max-width:62ch">${bmiNote}</span><span class="v"></span></div>`:''}
+  `;
+  document.getElementById('noteText').textContent = `Methodology: ${usedSignals.join(', ')}. This figure is a statistical estimate based on population growth data, not a medical diagnosis. A pediatrician with an actual bone-age X-ray reading will always be more reliable than any calculator.`;
+
+  const result = document.getElementById('result');
+  result.classList.add('show');
+  result.scrollIntoView({behavior:'smooth', block:'start'});
+});
+</script>
+</body>
+</html>
